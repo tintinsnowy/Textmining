@@ -31,15 +31,28 @@ result<-unique(result)
 write.csv(result,fileEncoding='UTF-8',"D:\\ubuntu\\WZL-project\\Project-Ford\\filtering-car-term.csv")
 # before you go further you have to delete the first row
 #-------------------------------LDA---------------------------
+data<-read.csv("D:\\ubuntu\\WZL-project\\Project-Ford\\filtering-car-term.csv",
+               header=TRUE,encoding='UTF-8',sep=",")
+names(data)
+dataset <- data$x
+dataset <- gsub(pattern="[@|,|;|.|?|*|!]"," ",dataset)
+dataset[complete.cases(dataset)]
+##cleansing the dataset
+content_source <- VectorSource(dataset)
+corpus <- Corpus(content_source)
+corpus <- tm_map(corpus,tolower)
+corpus <- tm_map(corpus,removeWords,stopwords("german"))
+corpus <- tm_map(corpus,removeWords,stopwords("en"))
+corpus <- tm_map(corpus,removeNumbers)
 ############################
 ### LDA topic clustering ###
 ############################
-
+# be sure to use the data from freq-term!
 text.dtm <- DocumentTermMatrix(corpus)
 inspect(text.dtm)
 library("topicmodels")
 
-k<-8
+k<-10
 SEED <- 2010
 jss_TM <- list(VEM = LDA(text.dtm, k = k, control = list(seed = SEED)),
                VEM_fixed = LDA(text.dtm, k = k,control = list(estimate.alpha = FALSE, seed = SEED)),
@@ -52,11 +65,23 @@ jss_TM <- list(VEM = LDA(text.dtm, k = k, control = list(seed = SEED)),
 inspect(text.dtm)
 rowTotals <- apply(text.dtm , 1, sum) #Find the sum of words in each Document
 text.dtm <- text.dtm[rowTotals> 0, ]  
-VEM = LDA(text.dtm, k = k, control = list(seed = SEED))
+VE = LDA(text.dtm, k = k, control = list(seed = SEED))
 #chapters_lda_td <- tidy(VEM)
-Topic <- topics(VEM, 1)
+Topic <- topics(VE, 1)
 Topic
-Terms<-terms(VEM,30)
+Terms<-terms(VE,20)
 Terms
-write.csv(Terms,"D:\\ubuntu\\WZL-project\\Project-Ford\\DocsToTopics2.csv")
+write.csv(Terms,"D:\\ubuntu\\WZL-project\\Project-Ford\\VEM10.csv")
+#--------------------Gibbs---------------------
+rowTotals <- apply(text.dtm , 1, sum) #Find the sum of words in each Document
+text.dtm <- text.dtm[rowTotals> 0, ]  
+Gibbs = LDA(text.dtm, k = k, method = "Gibbs",
+            control = list(seed = SEED, burnin = 1000,
+                           thin = 100, iter = 1000))
+
+Topic <- topics(Gibbs, 1)
+Topic
+Terms<-terms(Gibbs,20)
+Terms
+write.csv(Terms,"D:\\ubuntu\\WZL-project\\Project-Ford\\DocsToTopics10.csv")
 
