@@ -3,10 +3,10 @@ library(xlsx)
 library(rJava)
 library(Rwordseg)
 # SENTENCES.csv is the same with FOrd 2017....
-data<-read.csv("D:\\ubuntu\\WZL-project\\Textmining\\SENTENCES.csv",
+data<-read.csv("D:\\ubuntu\\WZL-project\\Project-Ford\\SENTENCES.csv",
                header=TRUE,encoding='UTF-8',sep=",")
 names(data)
-dataset <- data$sentence
+dataset <- data$forR_Noun_Adj
 dataset <- gsub(pattern="[@|,|;|.|?|*|!]"," ",dataset)
 dataset[complete.cases(dataset)]
 ##cleansing the dataset
@@ -17,7 +17,7 @@ corpus <- tm_map(corpus,removeWords,stopwords("german"))
 corpus <- tm_map(corpus,removeWords,stopwords("en"))
 corpus <- tm_map(corpus,removeNumbers)
 text.dtm <- TermDocumentMatrix (corpus)
-car <- read.csv("D:\\ubuntu\\WZL-project\\Textmining\\car.csv",
+car <- read.csv("D:\\ubuntu\\WZL-project\\Project-Ford\\car.csv",
                 header=TRUE,encoding='UTF-8',sep=",")
 inspect(text.dtm)
 text.matrix <- as.matrix(text.dtm,encoding = "UTF-8")
@@ -28,14 +28,14 @@ for(i in seq(1, len, 50)){
   result <- c(result,result1)
 }
 result<-unique(result)
-write.csv(result,fileEncoding='UTF-8',"D:\\ubuntu\\WZL-project\\Textmining\\filtering-car-term.csv")
-
+write.csv(result,fileEncoding='UTF-8',"D:\\ubuntu\\WZL-project\\Project-Ford\\filtering-car-term.csv")
+# before you go further you have to delete the first row
 #-------------------------------LDA---------------------------
-  ############################
+############################
 ### LDA topic clustering ###
 ############################
 
-text.dtm<-DocumentTermMatrix(corpus)
+text.dtm <- DocumentTermMatrix(corpus)
 inspect(text.dtm)
 library("topicmodels")
 
@@ -50,20 +50,13 @@ jss_TM <- list(VEM = LDA(text.dtm, k = k, control = list(seed = SEED)),
                          control = list(seed = SEED,
                                         var = list(tol = 10^-4), em = list(tol = 10^-3))))
 inspect(text.dtm)
+rowTotals <- apply(text.dtm , 1, sum) #Find the sum of words in each Document
+text.dtm <- text.dtm[rowTotals> 0, ]  
 VEM = LDA(text.dtm, k = k, control = list(seed = SEED))
-Terms<-terms(VEM,20)
+#chapters_lda_td <- tidy(VEM)
+Topic <- topics(VEM, 1)
+Topic
+Terms<-terms(VEM,30)
 Terms
-write.csv(Terms,"D:\\ubuntu\\WZL-project\\Textmining\\DocsToTopics2.csv")
+write.csv(Terms,"D:\\ubuntu\\WZL-project\\Project-Ford\\DocsToTopics2.csv")
 
-
-
-#------------------------------LDA------------------------------
-burnin<-4000
-iter<-2000
-thin<-500
-seed<-list(2003,5,63,100001,765)
-nstart<-5
-best<-TRUE
-
-#Number of Topics
-k<-8

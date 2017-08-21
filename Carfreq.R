@@ -7,7 +7,7 @@ library(rJava)
 library(Rwordseg)
 library("wordcloud")
 
-data<-read.csv("D:\\ubuntu\\WZL-project\\Textmining\\SENTENCES.csv",
+data<-read.csv("D:\\ubuntu\\WZL-project\\Project-Ford\\SENTENCES.csv",
                header=TRUE,encoding='UTF-8',sep=",")
 
 names(data)
