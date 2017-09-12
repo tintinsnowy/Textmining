@@ -62,7 +62,7 @@ orderf <- sort(freq, decreasing = T)# sort the freq tables
 #result<- result[result !='supermini']
 #orderf<- orderf[orderf !='supermini']
 write.csv(orderf,fileEncoding='UTF-8',
-          "D:\\ubuntu\\WZL-project\\Textmining\\order.csv")
+          "D:\\ubuntu\\WZL-project\\Project-Ford\\order.csv")
 
 # you have to chage the head of tables!!!!
 orderf<-read.csv("D:\\ubuntu\\WZL-project\\Textmining\\order.csv",
