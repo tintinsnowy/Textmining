@@ -1,6 +1,8 @@
-##########################
-### initial process    ###
-##########################
+#####################
+#Author: Xiaoli Yang#
+#Version: 1.0       #
+#####################
+### initial process
 # used to calculate the freqence of brands mentioned.
 library(tm)
 library(rJava)
@@ -9,10 +11,9 @@ library("wordcloud")
 
 data<-read.csv("D:\\ubuntu\\WZL-project\\Project-Ford\\SENTENCES.csv",
                header=TRUE,encoding='UTF-8',sep=",")
-
-names(data)
-dataset<- data$forR_Noun_Verbs
-dataset <- gsub(pattern="[@|,|;|.|?|*|!]"," ",dataset)
+names(data)  #to observe the structure of the table
+dataset <- data$forR_Noun_Verbs  #abstract this column
+dataset <- gsub(pattern="[@|,|;|.|?|*|!]"," ",dataset) # delete the punctuation
 dataset[complete.cases(dataset)]
 ##cleansing the dataset
 content_source<-VectorSource(dataset)
@@ -22,10 +23,10 @@ corpus<-tm_map(corpus,removeWords,stopwords("german"))
 corpus<-tm_map(corpus,removeWords,stopwords("en"))
 corpus<-tm_map(corpus,removeNumbers)
 
-##########################
-##   car relevent worsd ##
-##########################
-carslot <-readLines("carwords.txt")
+##################################
+##   car relevent words process ##
+##################################
+carslot <-readLines("carwords.txt") #the raw material of words relevant to the cars 
 res<-carslot[carslot!=" "]
 res <-gsub(pattern="[@|,|;|.|?|~|*|//]"," ",res)
 res[complete.cases(res)]
@@ -40,16 +41,17 @@ text.dtm<-TermDocumentMatrix (corpus)
 inspect(text.dtm)
 # in oder to reduce the sparse matrix
 text.matrix <- as.matrix(text.dtm,encoding = "UTF-8")
-fre<-findFreqTerms(text.dtm,0,Inf)  # you can only
+fre<-findFreqTerms(text.dtm,0,Inf)
 write.csv(fre,fileEncoding='UTF-8',"D:\\ubuntu\\WZL-project\\Textmining\\car.csv")
 #----------------------------------------------------------
-car<-read.csv("D:\\ubuntu\\WZL-project\\Textmining\\car.csv",
+car<-read.csv("D:\\ubuntu\\WZL-project\\Project-Ford\\car.csv",
               header=TRUE,encoding='UTF-8',sep=",")
 
+################################################
+##  Frequency of relevant words in the review ##
+################################################
 
-##############################
-##       frequency          ##
-##############################
+##cleansing the dataset
 text.dtm <- TermDocumentMatrix (corpus)
 #text.dtm <- removeSparseTerms(text.dtm, 0.9999)
 inspect(text.dtm)
@@ -63,17 +65,14 @@ orderf <- sort(freq, decreasing = T)# sort the freq tables
 #orderf<- orderf[orderf !='supermini']
 write.csv(orderf,fileEncoding='UTF-8',
           "D:\\ubuntu\\WZL-project\\Project-Ford\\order.csv")
-
-# you have to chage the head of tables!!!!
-orderf<-read.csv("D:\\ubuntu\\WZL-project\\Textmining\\order.csv",
+# now we have to find the most frequently mentioned cars
+orderf<-read.csv("D:\\ubuntu\\WZL-project\\Project-Ford\\order.csv",
                  header=TRUE,encoding='UTF-8',sep=",")
 names(orderf)<-c("name","value")
 spc<-"acura|audi|bmw|buick|cadillac|chevrolet|chrysler|dodge|fiat|ford|gmc|honda|hummer|hyundai|infiniti|jaguar|jeep|kia|land rover|lexus|lincoln|maserati|mazda|mercedes-benz|mercury|mini|mitsubishi|nissan|oldsmobile|pontiac|porsche|ram|saab|saturn|scion|smart|subaru|suzuki|toyota|volkswagen|volvo"
 spc <- unlist(strsplit("acura|audi|bmw|buick|cadillac|chevrolet|chrysler|dodge|fiat|gmc|honda|hummer|hyundai|infiniti|jaguar|jeep|kia|land rover|lexus|lincoln|maserati|mazda|mercedes-benz|mercedes|benz|mercury|mini|mitsubishi|nissan|oldsmobile|pontiac|porsche|ram|saab|saturn|scion|smart|subaru|suzuki|toyota|volkswagen|volvo", "[|]"))
 spc <- c(spc)
-#result<-orderf[match(spc, orderf$name),]
 result<-orderf[grepl(paste(spc, collapse="|"),orderf$name),]
-# fileter out the
 result <- result[grep("supermini|minim|parameter|insta|phone",result$name,invert = TRUE),]
 
 write.csv(result,fileEncoding='UTF-8',
@@ -81,20 +80,6 @@ write.csv(result,fileEncoding='UTF-8',
 mycolors <- brewer.pal(8,"Dark2")
 wordcloud(result$name,result$value,random.order=FALSE,random.color=TRUE,colors=mycolors,family="myFont3")
 
-#----------------try to find the cars mentioned---------------
-result<-dataset[grepl(paste(spc, collapse="|"),dataset)]
-write.csv(result,fileEncoding='UTF-8',
-          "D:\\ubuntu\\WZL-project\\Textmining\\rest.csv")
-content_source<-VectorSource(dataset)
-corpus<-Corpus(content_source)
-text.dtm<-TermDocumentMatrix (corpus)
-text.matrix <- as.matrix(text.dtm,encoding = "UTF-8")
-kre<-kmeans(text.matrix, 4)
-head(kre$cluster)
-kre$size
-##????hlzj.kmeansRes <- list(content=dataset,type=kre$cluster)
-write.csv(hlzj.kmeansRes,fileEncoding='UTF-8',
-          "D:\\ubuntu\\WZL-project\\Textmining\\hlzj_kmeansRes.csv")
 #############################
 ###        cluster        ###
 #############################
@@ -129,7 +114,7 @@ freq <- rowSums(text.matrix)
 order <- sort(freq, decreasing = T)# sort the freq tables
 write.csv(order,fileEncoding='UTF-8',
           "D:\\ubuntu\\WZL-project\\Textmining\\freq.csv")
-barplot(order[51:75])  # to see the distribution of frequence.
+barplot(order[51:75])  # to see the distribution of frequence.but only a
 v <- head(table(freq),50)
 d = data.frame(word=names(freq), freq=freq);
 d = subset(d, nchar(as.character(d$word))>1 & d$freq>=10& d$freq<40)

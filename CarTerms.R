@@ -9,7 +9,8 @@ names(data)
 dataset <- data$forR_Noun_Adj
 dataset <- gsub(pattern="[@|,|;|.|?|*|!]"," ",dataset)
 dataset[complete.cases(dataset)]
-##cleansing the dataset
+
+##cleansing the dataset, pick out the sentence/phrase which contains relevant words
 car <- read.csv("D:\\ubuntu\\WZL-project\\Project-Ford\\car.csv",
                 header=TRUE,encoding='UTF-8',sep=",")
 inspect(text.dtm)
@@ -23,6 +24,8 @@ for(i in seq(1, len, 50)){
 result<-unique(result)
 write.csv(result,fileEncoding='UTF-8',"D:\\ubuntu\\WZL-project\\Project-Ford\\filtering-car-term.csv")
 # before you go further you have to delete the first row
+
+
 #-------------------------------LDA---------------------------
 data<-read.csv("D:\\ubuntu\\WZL-project\\Project-Ford\\filtering-car-term.csv",
                header=TRUE,encoding='UTF-8',sep=",")
@@ -46,26 +49,24 @@ inspect(text.dtm)
 library("topicmodels")
 library(tidyverse)
 library(tidytext)
+
+#It's important to try different conf before you find the suitbale topics. 
+#However, it's common that some categories may not tightly closed.
+
 k<-10
 SEED <- 2010
-jss_TM <- list(VEM = LDA(text.dtm, k = k, control = list(seed = SEED)),
-               VEM_fixed = LDA(text.dtm, k = k,control = list(estimate.alpha = FALSE, seed = SEED)),
-               Gibbs = LDA(text.dtm, k = k, method = "Gibbs",
-                           control = list(seed = SEED, burnin = 1000,
-                                          thin = 100, iter = 1000)),
-               CTM = CTM(text.dtm, k = k,
-                         control = list(seed = SEED,
-                                        var = list(tol = 10^-4), em = list(tol = 10^-3))))
 inspect(text.dtm)
 rowTotals <- apply(text.dtm , 1, sum) #Find the sum of words in each Docx`x`ument
-text.dtm <- text.dtm[rowTotals > 0, ]  
+text.dtm <- text.dtm[rowTotals > 0, ] #each row has at least one non-zero entry
 VE = LDA(text.dtm, k = k, control = list(seed = SEED))
 #chapters_lda_td <- tidy(VEM)
 Topic <- topics(VE, 1)
 Topic
-Terms<-terms(VE,20)
+Terms<-terms(VE,20) #get the top 20 terms
 Terms
 write.csv(Terms,"D:\\ubuntu\\WZL-project\\Project-Ford\\VEM10-2.csv")
+
+#Further more you can see each term's probabilty 
 ap_topics <- tidy(VE, matrix = "beta")
 ap_topics
 top_terms <- ap_topics %>%
@@ -75,6 +76,7 @@ top_terms <- ap_topics %>%
   arrange(topic, -beta)
 top_terms
 write.csv(top_terms,"D:\\ubuntu\\WZL-project\\Project-Ford\\topics.csv")
+
 #################
 ### wordcloud ###
 #################
@@ -132,7 +134,7 @@ topic10
 wordcloud(topic10$term,topic10$beta,random.order=FALSE,random.color=FALSE,colors=mycolors,family="myFont3")
 
 
-#--------------------Gibbs---------------------
+#--------------------Gibbs way---------------------
 rowTotals <- apply(text.dtm , 1, sum) #Find the sum of words in each Document
 text.dtm <- text.dtm[rowTotals> 0, ]  
 Gibbs = LDA(text.dtm, k = k, method = "Gibbs",
